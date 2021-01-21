@@ -35,7 +35,7 @@ namespace MeetMePeople
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            
+
             services.AddControllersWithViews();
         }
 
@@ -63,9 +63,16 @@ namespace MeetMePeople
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapAreaControllerRoute(
+                     name: "adminRoute",
+                     areaName: "Admin",
+                     pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}"
+                     );
+
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}"
+                    );
                 endpoints.MapRazorPages();
             });
         }
