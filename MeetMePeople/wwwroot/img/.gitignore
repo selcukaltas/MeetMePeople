@@ -1,0 +1,6 @@
+#herþeyi ignore et
+*
+#bu dosyalar haric
+!.gitignore
+!meeting1.jpg
+!meeting2.jpg

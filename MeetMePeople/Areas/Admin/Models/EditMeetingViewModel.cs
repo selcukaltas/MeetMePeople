@@ -7,15 +7,13 @@ using System.Threading.Tasks;
 
 namespace MeetMePeople.Models
 {
-    public class EditMeetingViewModel
+    public class NewMeetingViewModel
     {
-        public int Id { get; set; }
         [Required]
         public string Title { get; set; }
         public string Description { get; set; }
         public DateTime? MeetingTime { get; set; }
         public string Place { get; set; }
-        public string ExistingPhotoPath { get; set; }
         public IFormFile PhotoFile { get; set; }
     }
 }
