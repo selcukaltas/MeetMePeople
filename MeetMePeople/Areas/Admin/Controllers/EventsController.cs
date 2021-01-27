@@ -1,5 +1,6 @@
 ﻿using MeetMePeople.Data;
 using MeetMePeople.Models;
+using MeetMePeople.Services;
 using MeetMePeople.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,14 @@ using System.Threading.Tasks;
 
 namespace MeetMePeople.Areas.Admin.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class EventsController : AdminBaseController
     {
-        public EventsController(ApplicationDbContext dbContext) : base(dbContext)
+        private readonly HelperService helperService;
+
+        public EventsController(ApplicationDbContext dbContext,HelperService helperService) : base(dbContext)
         {
+            this.helperService = helperService;
         }
 
         public IActionResult Index()
@@ -38,7 +43,8 @@ namespace MeetMePeople.Areas.Admin.Controllers
                 {
                     fileName = vm.PhotoFile.GenerateFileName();
                     var savePath = Path.Combine(env.WebRootPath, "img",fileName);
-                    vm.PhotoFile.CopyTo(new FileStream(savePath, FileMode.Create));
+                    using FileStream fs = new FileStream(savePath, FileMode.Create);
+                    vm.PhotoFile.CopyTo(fs);
                 }
                 var meeting = new Meeting()
                 {
@@ -83,7 +89,8 @@ namespace MeetMePeople.Areas.Admin.Controllers
                 {
                     fileName = vm.PhotoFile.GenerateFileName();
                     var savePath = Path.Combine(env.WebRootPath, "img", fileName);
-                    vm.PhotoFile.CopyTo(new FileStream(savePath, FileMode.Create));
+                    using FileStream fs = new FileStream(savePath, FileMode.Create);
+                    vm.PhotoFile.CopyTo(fs);
                 }
                 var meeting = _db.Meetings.Find(vm.Id);
                 meeting.MeetingTime = vm.MeetingTime;
@@ -92,12 +99,26 @@ namespace MeetMePeople.Areas.Admin.Controllers
                 meeting.Title = vm.Title;
                 if (!string.IsNullOrEmpty(fileName))
                 {
+                    helperService.DeletePhoto(meeting.Photo);
                     meeting.Photo = fileName;
                 }
                 _db.SaveChanges();
                 return RedirectToAction("Index");
             }
             return View();
+        }
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var meeting = _db.Meetings.Find(id);
+            if (meeting == null)
+            {
+                return NotFound();
+            }
+            helperService.DeletePhoto(meeting.Photo);
+            _db.Remove(meeting);
+            _db.SaveChanges();
+            return Ok();
         }
     }
    
