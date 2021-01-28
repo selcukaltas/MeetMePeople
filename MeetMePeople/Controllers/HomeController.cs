@@ -18,28 +18,44 @@ namespace MeetMePeople.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _db;
+        const int PageSize = 10;
 
         public HomeController(ILogger<HomeController> logger,ApplicationDbContext applicationDbContext)
         {
             _logger = logger;
             _db = applicationDbContext;
         }
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
+            var totalItemsCount = _db.Meetings.Count();
+            var pageCount = (int)Math.Ceiling((double)totalItemsCount / PageSize); //double bölmesi yaptığımız için int'a yuvarlıyoruz.
+
             var loggedIn = User.Identity.IsAuthenticated;
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var meetings = _db.Meetings.OrderByDescending(x => x.MeetingTime).Select(x => new MeetingViewModel()
+            var meetings = _db.Meetings.OrderByDescending(x => x.MeetingTime)
+                .Select(x => new MeetingViewModel()
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Description = x.Description,
+                    MeetingTime = x.MeetingTime,
+                    Photo = x.Photo,
+                    Place = x.Place,
+                    IsJoined = loggedIn && x.Participants.Any(p => p.Id == userId)
+                }).Skip((page - 1) * PageSize).Take(PageSize).ToList();
+
+            var vm = new HomeViewModel
             {
-                Id = x.Id,
-                Title = x.Title,
-                Description = x.Description,
-                MeetingTime = x.MeetingTime,
-                Photo = x.Photo,
-                Place = x.Place,
-                IsJoined = loggedIn && x.Participants.Any(p => p.Id == userId)
-            })
-                .ToList();
-            return View(meetings);
+                Meetings = meetings,
+                ItemsCount = meetings.Count,
+                TotalItemsCount = totalItemsCount,
+                PageCount = pageCount,
+                PageSize = PageSize,
+                Page = page,
+                IsPrevious = page > 1,
+                IsNext = page< pageCount
+            };
+            return View(vm);
         }
         [Authorize]
         public IActionResult MyMeetings()

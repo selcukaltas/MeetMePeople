@@ -52,6 +52,7 @@ namespace MeetMePeople.Data
                 if (env.IsDevelopment())
                 {
                      SeedMeetings(db);
+                     SeedMeetings(db,100);
                 }
             }
             return host;
@@ -59,6 +60,7 @@ namespace MeetMePeople.Data
         }
         private static void SeedMeetings(ApplicationDbContext db)
         {
+     
             if (!db.Meetings.Any())
             {
                 db.Meetings.Add(new Meeting()
@@ -79,6 +81,24 @@ namespace MeetMePeople.Data
                 });
                 db.SaveChanges();
             }
+        }
+        private static void SeedMeetings(ApplicationDbContext db, int count)
+        {
+            int currentCount = db.Meetings.Count();
+
+            for (int i = currentCount; i < count; i++)
+            {
+
+                db.Meetings.Add(new Meeting()
+                {
+                    Title = "meeting "+ i,
+                    Description = "An English Club is a place for language learners to use English in a casual setting. Practising your skills in the classroom is important.",
+                    Place = "Route Cafe, Ankara",
+                    MeetingTime = DateTime.Now.AddDays(-i)
+                });
+                db.SaveChanges();
+            }
+
         }
     }
 }
